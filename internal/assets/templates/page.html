@@ -32,7 +32,12 @@
     <div class="header-container content-bounds">
         <div class="header flex padding-inline-widget widget-content-frame">
             <!-- TODO: Replace G with actual logo, first need an actual logo -->
-            <div class="logo">{{ if ne "" .App.Config.Branding.LogoURL }}<img src="{{ .App.Config.Branding.LogoURL }}" alt="">{{ else if ne "" .App.Config.Branding.LogoText }}{{ .App.Config.Branding.LogoText }}{{ else }}G{{ end }}</div>
+            <div class="logo-container">
+                <div class="logo">{{ if ne "" .App.Config.Branding.LogoURL }}<img src="{{ .App.Config.Branding.LogoURL }}" alt="">{{ else if ne "" .App.Config.Branding.LogoText }}{{ .App.Config.Branding.LogoText }}{{ else }}G{{ end }}</div>
+                <div class="connection-status"
+                     title="You appear to be offline.&#010;Widget data may be outdated."
+                     style="visibility: hidden"></div>
+            </div>
             <div class="nav flex grow">
                 {{ template "navigation-links" . }}
             </div>

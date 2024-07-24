@@ -649,6 +649,12 @@ kbd:active {
     gap: var(--header-items-gap);
 }
 
+.logo-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
 .logo {
     height: 100%;
     line-height: var(--header-height);
@@ -665,6 +671,28 @@ kbd:active {
 
 .logo img {
     max-height: 2.7rem;
+}
+
+.connection-status {
+    position: absolute;
+    top: 1rem;
+    right: 1.2rem;
+    width: 0.8rem;
+    height: 0.8rem;
+    border-radius: 50%;
+    animation: ping 1.8s cubic-bezier(0, 0, 0.4, 1) infinite;
+    background: var(--color-negative);
+}
+
+@keyframes ping {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    75%, 100% {
+        transform: scale(2);
+        opacity: 0;
+    }
 }
 
 .nav {
