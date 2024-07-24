@@ -236,6 +236,12 @@ func FileServerWithCache(fs http.FileSystem, cacheDuration time.Duration) http.H
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// TODO: fix always setting cache control even if the file doesn't exist
 		w.Header().Set("Cache-Control", fmt.Sprintf("public, max-age=%d", int(cacheDuration.Seconds())))
+
+		// set service worker allowed scope from root path
+		if strings.Contains(r.URL.Path, "service-worker.js") {
+			w.Header().Set("Service-Worker-Allowed", "/")
+		}
+
 		server.ServeHTTP(w, r)
 	})
 }
