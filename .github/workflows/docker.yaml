@@ -1,0 +1,64 @@
+name: Create and publish a Docker image
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - dvd/main
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push-image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.22'
+
+      - name: Build app
+        run: |
+          # just to check if it builds correctly
+          GITHUB_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+          GOOS=linux
+          GOARCH=amd64
+          CGO_ENABLED=0
+          go build --trimpath --ldflags "-s -w -X github.com/dvdandroid/glance/internal/glance.buildVersion=${GITHUB_SHA}" -o build/glance .
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Docker image
+        run: |
+          TODAY=$(date +'%Y-%m-%d')
+          GITHUB_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+          IMAGE_TAG=${TODAY}-${GITHUB_SHA}
+          docker build -t img . --build-arg IMAGE_TAG=${IMAGE_TAG}
+          # make IMAGE_NAME lowercase
+          IMAGE_NAME=$(echo ${{ env.IMAGE_NAME }} | tr '[:upper:]' '[:lower:]')
+          docker tag img ${{ env.REGISTRY }}/${IMAGE_NAME}:${IMAGE_TAG}
+          docker tag img ${{ env.REGISTRY }}/${IMAGE_NAME}:${TODAY}
+          docker tag img ${{ env.REGISTRY }}/${IMAGE_NAME}:${GITHUB_SHA}
+          docker tag img ${{ env.REGISTRY }}/${IMAGE_NAME}:latest
+
+      - name: Push Docker image
+        run: |
+          # make IMAGE_NAME lowercase
+          IMAGE_NAME=$(echo ${{ env.IMAGE_NAME }} | tr '[:upper:]' '[:lower:]')
+          docker push -a ${{ env.REGISTRY }}/${IMAGE_NAME}
