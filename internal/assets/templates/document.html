@@ -22,7 +22,7 @@
 {{ template "document-body" . }}
 <script>
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register("{{ .App.AssetPath "service-worker.js" }}", { scope: "/" })
+        navigator.serviceWorker.register("{{ .App.AssetPath "service-worker.js" }}", { scope: "{{ .App.Config.Server.BaseURL }}" || "/" })
             .then(registration => {
               console.log('Service Worker registered with scope:', registration.scope);
             })
