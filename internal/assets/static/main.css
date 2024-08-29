@@ -674,23 +674,36 @@ kbd:active {
 }
 
 .connection-status {
-    position: absolute;
-    top: 1rem;
-    right: 1.2rem;
+    top: -1rem;
+    right: 1.6rem;
+    background-color: var(--color-negative);
+    border-radius: 50%;
     width: 0.8rem;
     height: 0.8rem;
-    border-radius: 50%;
-    animation: ping 1.8s cubic-bezier(0, 0, 0.4, 1) infinite;
-    background: var(--color-negative);
+    display: inline-block;
+    position: relative;
+}
+
+
+.connection-status::after {
+    background-color: var(--color-negative);
+    animation: 1.5s ease-out infinite ping;
+    border-radius: inherit;
+    width: 0.8rem;
+    height: 0.8rem;
+    display: block;
+    position: absolute;
+    content: "";
+    opacity: 0.2;
 }
 
 @keyframes ping {
     0% {
-        transform: scale(1);
-        opacity: 1;
+        transform: scale3d(1, 1, 1);
+        opacity: 0.7;
     }
-    75%, 100% {
-        transform: scale(2);
+    100% {
+        transform: scale3d(4, 4, 4);
         opacity: 0;
     }
 }
