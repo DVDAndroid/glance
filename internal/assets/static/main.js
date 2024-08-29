@@ -479,6 +479,20 @@ function afterContentReady(callback) {
     contentReadyCallbacks.push(callback);
 }
 
+function setupConnectionStatus() {
+    const connectionStatusElement = document.getElementsByClassName("connection-status")[0];
+    if (connectionStatusElement === null) return;
+
+    const updateConnectionStatus = (online) => {
+        connectionStatusElement.style.visibility = online ? "hidden" : "visible";
+    }
+
+    window.addEventListener("online", () => updateConnectionStatus(true));
+    window.addEventListener("offline", () => updateConnectionStatus(false));
+
+    updateConnectionStatus(navigator.onLine);
+}
+
 const weekDayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
@@ -602,6 +616,7 @@ async function setupPage() {
         setupGroups();
         setupDynamicRelativeTime();
         setupLazyImages();
+        setupConnectionStatus();
     } finally {
         pageElement.classList.add("content-ready");
 

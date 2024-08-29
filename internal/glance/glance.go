@@ -230,12 +230,17 @@ func (a *Application) HandleNotFound(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Page not found"))
 }
 
-func FileServerWithCache(fs http.FileSystem, cacheDuration time.Duration) http.Handler {
+func FileServerWithCache(fs http.FileSystem, cacheDuration time.Duration, extra func(w http.ResponseWriter, r *http.Request)) http.Handler {
 	server := http.FileServer(fs)
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// TODO: fix always setting cache control even if the file doesn't exist
 		w.Header().Set("Cache-Control", fmt.Sprintf("public, max-age=%d", int(cacheDuration.Seconds())))
+
+		if extra != nil {
+			extra(w, r)
+		}
+
 		server.ServeHTTP(w, r)
 	})
 }
@@ -277,7 +282,20 @@ func (a *Application) Serve() error {
 
 	mux.Handle(
 		fmt.Sprintf("GET /static/%s/{path...}", a.Config.Server.AssetsHash),
-		http.StripPrefix("/static/"+a.Config.Server.AssetsHash, FileServerWithCache(http.FS(assets.PublicFS), 24*time.Hour)),
+		http.StripPrefix("/static/"+a.Config.Server.AssetsHash, FileServerWithCache(
+			http.FS(assets.PublicFS),
+			24*time.Hour,
+			func(w http.ResponseWriter, r *http.Request) {
+				// set service worker allowed scope from base url path
+				if strings.Contains(r.URL.Path, "service-worker.js") {
+					baseUrl := a.Config.Server.BaseURL
+					if baseUrl == "" {
+						baseUrl = "/"
+					}
+					w.Header().Set("Service-Worker-Allowed", baseUrl)
+				}
+			},
+		)),
 	)
 
 	if a.Config.Server.AssetsPath != "" {
@@ -288,7 +306,7 @@ func (a *Application) Serve() error {
 		}
 
 		slog.Info("Serving assets", "path", absAssetsPath)
-		assetsFS := FileServerWithCache(http.Dir(a.Config.Server.AssetsPath), 2*time.Hour)
+		assetsFS := FileServerWithCache(http.Dir(a.Config.Server.AssetsPath), 2*time.Hour, nil)
 		mux.Handle("/assets/{path...}", http.StripPrefix("/assets/", assetsFS))
 	}
 
