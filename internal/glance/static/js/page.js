@@ -748,9 +748,11 @@ async function setupPage() {
 
     const pageElement = document.getElementById("page");
     const pageContentElement = document.getElementById("page-content");
-    const pageContent = await fetchPageContent(pageData);
+    if (pageContentElement) {
+        const pageContent = await fetchPageContent(pageData);
 
-    pageContentElement.innerHTML = pageContent;
+        pageContentElement.innerHTML = pageContent;
+    }
 
     try {
         setupPopovers();

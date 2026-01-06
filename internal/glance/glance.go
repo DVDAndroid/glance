@@ -320,6 +320,41 @@ func (a *application) handlePageRequest(w http.ResponseWriter, r *http.Request) 
 	}
 	a.populateTemplateRequestData(&data.Request, r)
 
+	if page.SSR {
+		var err error
+		var contentBuilder strings.Builder
+
+		func() {
+			page.mu.Lock()
+			defer page.mu.Unlock()
+
+			page.updateOutdatedWidgets()
+			err = pageContentTemplate.Execute(&contentBuilder, data)
+		}()
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
+		}
+
+		content := contentBuilder.String()
+
+		var fullPageBuilder strings.Builder
+		err = pageTemplate.Execute(&fullPageBuilder, data)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
+		}
+
+		fullPage := fullPageBuilder.String()
+		fullPage = strings.Replace(fullPage, "$$$page-content$$$", content, 1)
+
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.Write([]byte(fullPage))
+		return
+	}
+
 	var responseBytes bytes.Buffer
 	err := pageTemplate.Execute(&responseBytes, data)
 	if err != nil {

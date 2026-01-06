@@ -83,6 +83,7 @@ type page struct {
 	HideDesktopNavigation  bool    `yaml:"hide-desktop-navigation"`
 	CenterVertically       bool    `yaml:"center-vertically"`
 	HeadWidgets            widgets `yaml:"head-widgets"`
+	SSR                    bool    `yaml:"ssr"`
 	Columns                []struct {
 		Size    string  `yaml:"size"`
 		Widgets widgets `yaml:"widgets"`

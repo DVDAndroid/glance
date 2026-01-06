@@ -24,6 +24,7 @@ type extensionWidget struct {
 	Parameters          queryParametersField `yaml:"parameters"`
 	Headers             map[string]string    `yaml:"headers"`
 	AllowHtml           bool                 `yaml:"allow-potentially-dangerous-html"`
+	ForceHtml           bool                 `yaml:"force-html"`
 	Extension           extension            `yaml:"-"`
 	cachedHTML          template.HTML        `yaml:"-"`
 }
@@ -49,6 +50,7 @@ func (widget *extensionWidget) update(ctx context.Context) {
 		Parameters:          widget.Parameters,
 		Headers:             widget.Headers,
 		AllowHtml:           widget.AllowHtml,
+		ForceHtml:           widget.ForceHtml,
 	})
 
 	widget.canContinueUpdateAfterHandlingErr(err)
@@ -94,6 +96,7 @@ type extensionRequestOptions struct {
 	Parameters          queryParametersField `yaml:"parameters"`
 	Headers             map[string]string    `yaml:"headers"`
 	AllowHtml           bool                 `yaml:"allow-potentially-dangerous-html"`
+	ForceHtml           bool                 `yaml:"force-html"`
 }
 
 type extension struct {
@@ -104,6 +107,9 @@ type extension struct {
 }
 
 func convertExtensionContent(options extensionRequestOptions, content []byte, contentType extensionType) template.HTML {
+	if options.ForceHtml {
+		return template.HTML(content)
+	}
 	switch contentType {
 	case extensionContentHTML:
 		if options.AllowHtml {
